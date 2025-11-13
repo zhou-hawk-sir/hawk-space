@@ -2,7 +2,7 @@
 class GitHubDataManager {
     constructor() {
         // Token通过GitHub Actions在构建时注入
-        this.dataRepo = 'zhou-siir6668899/web-user-data';
+        this.dataRepo = 'zhou-sir6668899/web-user-data';
         this.token = 'GH_DATA_TOKEN_PLACEHOLDER'; // 会被GitHub Actions替换
         this.baseURL = 'https://api.github.com/repos/';
         this.headers = {
@@ -279,3 +279,4 @@ class GitHubDataManager {
 // 创建全局实例
 
 const gitHubDataManager = new GitHubDataManager();
+
