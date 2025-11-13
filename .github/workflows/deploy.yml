@@ -32,7 +32,7 @@ jobs:
           echo "✅ 生成 github-data-manager.js"
           
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3  # 🔥 改为 v3
+        uses: actions/upload-pages-artifact@v3  
         with:
           path: .
 
