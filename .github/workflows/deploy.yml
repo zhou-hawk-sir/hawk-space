@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # 🔥 改为 write，需要写入权限来生成文件
   pages: write
   id-token: write
 
@@ -24,12 +24,41 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
         
+      - name: Debug File Structure
+        run: |
+          echo "=== 调试信息 ==="
+          echo "当前目录:"
+          pwd
+          echo "文件列表:"
+          ls -la
+          echo "js文件夹内容:"
+          ls -la js/
+          echo "源文件内容前3行:"
+          head -3 js/github-data-manager-secure.js
+          
       - name: Inject GitHub Token
         run: |
-          # 创建最终的安全文件
+          echo "=== 开始Token替换 ==="
+          # 检查源文件是否存在
+          if [ ! -f "js/github-data-manager-secure.js" ]; then
+            echo "❌ 错误: js/github-data-manager-secure.js 不存在"
+            exit 1
+          fi
+          
+          # 执行Token替换
           sed "s/GH_DATA_TOKEN_PLACEHOLDER/${{ secrets.GH_DATA_TOKEN }}/g" js/github-data-manager-secure.js > js/github-data-manager.js
-          echo "✅ Token注入完成"
-          echo "✅ 生成 github-data-manager.js"
+          
+          # 验证生成结果
+          echo "=== 验证生成结果 ==="
+          if [ -f "js/github-data-manager.js" ]; then
+            echo "✅ 文件生成成功"
+            echo "文件大小: $(wc -l < js/github-data-manager.js) 行"
+            echo "Token替换检查:"
+            grep "token" js/github-data-manager.js | head -1
+          else
+            echo "❌ 文件生成失败"
+            exit 1
+          fi
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3  
@@ -45,4 +74,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3  # 🔥 改为 
+        uses: actions/deploy-pages@v3
