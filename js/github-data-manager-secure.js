@@ -71,11 +71,11 @@ class GitHubDataManager {
 
     getEmptyDataForFile(filePath) {
         const data = {
-            'user/users.json': {
+            'users/users.json': {
                 users: []
             },
-            'sessions/active-sessions.json': { sessions: [] },
-            'config/repository.config.json': {
+            'sessions/login-history.json': { sessions: [] },
+            'config/admin-config.json': {
                 repository: { name: "web-user-data", owner: "zhou-sir6668899", branch: "main" },
                 security: { adminEmails: ["hawk@qq.com"], maxLoginAttempts: 5 }
             }
@@ -279,4 +279,5 @@ class GitHubDataManager {
 // 创建全局实例
 
 const gitHubDataManager = new GitHubDataManager();
+
 
