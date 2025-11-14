@@ -76,7 +76,7 @@ class GitHubDataManager {
             },
             'sessions/active-sessions.json': { sessions: [] },
             'config/repository.config.json': {
-                repository: { name: "web-user-data", owner: "zhou-str6668899", branch: "main" },
+                repository: { name: "web-user-data", owner: "zhou-siir6668899", branch: "main" },
                 security: { adminEmails: ["hawk@qq.com"], maxLoginAttempts: 5 }
             }
         };
@@ -91,7 +91,7 @@ class GitHubDataManager {
                 headers: this.headers,
                 body: JSON.stringify({
                     message: `Update ${filePath} - ${new Date().toISOString()}`,
-                    content: this.safeBtoa(content),
+                    content: this.safeBtoa(contenti),
                     sha: sha
                 })
             });
@@ -279,4 +279,5 @@ class GitHubDataManager {
 // 创建全局实例
 
 const gitHubDataManager = new GitHubDataManager();
+
 
