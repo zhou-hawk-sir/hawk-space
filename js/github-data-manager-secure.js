@@ -112,7 +112,7 @@ class GitHubDataManager {
 
     async verifyUser(email, password) {
         try {
-            const usersFile = await this.getFileContent('user/users.json');
+            const usersFile = await this.getFileContent('users/users.json');
             const usersContent = this.safeAtob(usersFile.content);
 
             const user = usersContent.users.find(u => u.email === email && u.status === 'active');
@@ -132,7 +132,7 @@ class GitHubDataManager {
 
     async registerUser(userData) {
         try {
-            const usersFile = await this.getFileContent('user/users.json');
+            const usersFile = await this.getFileContent('users/users.json');
             const usersContent = this.safeAtob(usersFile.content);
 
             if (usersContent.users.find(user => user.email === userData.email)) {
@@ -154,7 +154,7 @@ class GitHubDataManager {
             };
 
             usersContent.users.push(newUser);
-            await this.updateFile('user/users.json', usersContent, usersFile.sha);
+            await this.updateFile('users/users.json', usersContent, usersFile.sha);
 
             return newUser;
         } catch (error) {
@@ -164,7 +164,7 @@ class GitHubDataManager {
 
     async recordLogin(userId, loginInfo) {
         try {
-            const sessionsFile = await this.getFileContent('sessions/active-sessions.json');
+            const sessionsFile = await this.getFileContent('sessions/login-history.json');
             const sessionsContent = this.safeAtob(sessionsFile.content) || { sessions: [] };
 
             const loginRecord = {
@@ -183,7 +183,7 @@ class GitHubDataManager {
                 sessionsContent.sessions = sessionsContent.sessions.slice(0, 100);
             }
 
-            await this.updateFile('sessions/active-sessions.json', sessionsContent, sessionsFile.sha);
+            await this.updateFile('sessions/login-history.json', sessionsContent, sessionsFile.sha);
             await this.updateUserLastLogin(userId);
 
             return loginRecord;
@@ -213,14 +213,14 @@ class GitHubDataManager {
 
     async updateUserLastLogin(userId) {
         try {
-            const usersFile = await this.getFileContent('user/users.json');
+            const usersFile = await this.getFileContent('users/users.json');
             const usersContent = this.safeAtob(usersFile.content);
 
             const userIndex = usersContent.users.findIndex(user => user.id === userId);
             if (userIndex !== -1) {
                 usersContent.users[userIndex].lastLogin = new Date().toISOString();
                 usersContent.users[userIndex].loginCount += 1;
-                await this.updateFile('user/users.json', usersContent, usersFile.sha);
+                await this.updateFile('users/users.json', usersContent, usersFile.sha);
             }
         } catch (error) {
             console.error('更新用户最后登录时间失败:', error);
@@ -237,7 +237,7 @@ class GitHubDataManager {
 
     async getAllUsers() {
         try {
-            const usersFile = await this.getFileContent('user/users.json');
+            const usersFile = await this.getFileContent('users/users.json');
             return this.safeAtob(usersFile.content).users;
         } catch (error) {
             throw error;
@@ -246,7 +246,7 @@ class GitHubDataManager {
 
     async getLoginHistory() {
         try {
-            const sessionsFile = await this.getFileContent('sessions/active-sessions.json');
+            const sessionsFile = await this.getFileContent('sessions/login-history.json');
             return this.safeAtob(sessionsFile.content).sessions || [];
         } catch (error) {
             throw error;
@@ -255,7 +255,7 @@ class GitHubDataManager {
 
     async isAdmin(email) {
         try {
-            const configFile = await this.getFileContent('config/repository.config.json');
+            const configFile = await this.getFileContent('config/admin-config.json');
             const config = this.safeAtob(configFile.content);
             return config.security.adminEmails.includes(email);
         } catch (error) {
@@ -266,7 +266,7 @@ class GitHubDataManager {
     async testConnection() {
         try {
             console.log('🧪 测试GitHub连接...');
-            await this.getFileContent('user/users.json');
+            await this.getFileContent('users/users.json');
             console.log('✅ GitHub连接测试成功！');
             return true;
         } catch (error) {
@@ -279,5 +279,6 @@ class GitHubDataManager {
 // 创建全局实例
 
 const gitHubDataManager = new GitHubDataManager();
+
 
 
