@@ -613,3 +613,163 @@ body {
     box-shadow: 0 0 20px rgba(74, 144, 226, 0.4);
     transform: translateY(-2px);
 }
+/* ===== 新增：登录界面布局优化 ===== */
+
+/* 修复容器和登录面板的响应式布局 */
+.container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 优化登录面板高度和滚动 */
+.login-panel {
+    background: rgba(16, 18, 27, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px 35px;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 100px rgba(74, 144, 226, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: visible;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+    /* 优化滚动条 */
+    .login-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .login-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .login-panel::-webkit-scrollbar-thumb {
+        background: rgba(74, 144, 226, 0.5);
+        border-radius: 3px;
+    }
+
+/* 调整管理员入口位置和样式 */
+.admin-entry {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 20;
+}
+
+.admin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+/* 电脑端特定优化 */
+@media (min-width: 769px) {
+    .container {
+        padding: 40px 20px;
+    }
+
+    .login-panel {
+        width: 100%;
+        max-width: 400px;
+        padding: 35px 30px;
+    }
+
+    /* 确保内容不会溢出 */
+    .header {
+        margin-bottom: 25px;
+    }
+
+    .input-group {
+        margin-bottom: 20px;
+    }
+
+    .switch-container {
+        margin: 20px 0;
+    }
+
+    .divider {
+        margin: 25px 0;
+    }
+
+    .social-login {
+        margin-bottom: 15px;
+    }
+}
+
+/* 小屏幕电脑优化 */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .login-panel {
+        max-width: 380px;
+        padding: 30px 25px;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 360px) {
+    .login-panel {
+        padding: 25px 20px;
+    }
+
+    .admin-link {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+/* 加载状态优化 */
+.loading-state {
+    display: none;
+    text-align: center;
+    padding: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+    .loading-state.show {
+        display: block;
+    }
+
+.loading-spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #4a90e2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* 快速登录提示 */
+.quick-login-badge {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 5px;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}

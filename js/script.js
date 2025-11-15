@@ -100,6 +100,190 @@ class ParticleSystem {
     }
 }
 
+// ==== 新增：增强的缓存管理 ====
+class CacheManager {
+    constructor() {
+        this.cacheVersion = '1.1';
+        this.essentialData = [
+            'user-profile',
+            'login-history',
+            'app-config'
+        ];
+    }
+
+    // 预加载必要数据
+    async preloadEssentialData(userEmail) {
+        try {
+            const cacheKey = `essential_data_${userEmail}`;
+            const cached = this.getCache(cacheKey);
+
+            if (cached && this.isCacheValid(cached)) {
+                return cached.data;
+            }
+
+            // 并行加载必要数据
+            const promises = this.essentialData.map(async (dataType) => {
+                try {
+                    const data = await this.fetchEssentialData(dataType, userEmail);
+                    return { type: dataType, data };
+                } catch (error) {
+                    console.warn(`预加载 ${dataType} 失败:`, error);
+                    return { type: dataType, data: null };
+                }
+            });
+
+            const results = await Promise.allSettled(promises);
+            const essentialData = {};
+
+            results.forEach(result => {
+                if (result.status === 'fulfilled' && result.value) {
+                    essentialData[result.value.type] = result.value.data;
+                }
+            });
+
+            // 缓存数据
+            this.setCache(cacheKey, {
+                data: essentialData,
+                timestamp: new Date().toISOString(),
+                version: this.cacheVersion
+            });
+
+            return essentialData;
+        } catch (error) {
+            console.error('预加载必要数据失败:', error);
+            return {};
+        }
+    }
+
+    async fetchEssentialData(dataType, userEmail) {
+        // 根据数据类型从GitHub获取相应数据
+        switch (dataType) {
+            case 'user-profile':
+                return await gitHubDataManager.getUserProfile(userEmail);
+            case 'login-history':
+                return await gitHubDataManager.getLoginHistory(userEmail);
+            case 'app-config':
+                return await gitHubDataManager.getFileContent('config/app-config.json');
+            default:
+                return null;
+        }
+    }
+
+    // 缓存用户数据（替换原有的 cacheUserData 函数）
+    cacheUserData(user, password) {
+        const userCache = {
+            id: user.id,
+            email: user.email,
+            password: password,
+            username: user.username,
+            lastUpdated: new Date().toISOString(),
+            cacheVersion: this.cacheVersion
+        };
+
+        localStorage.setItem(`userCache_${user.email}`, JSON.stringify(userCache));
+        this.cleanupExpiredCache();
+    }
+
+    // 获取缓存的用户数据（替换原有的 getCachedUser 函数）
+    getCachedUser(email) {
+        try {
+            const cached = localStorage.getItem(`userCache_${email}`);
+            if (!cached) return null;
+
+            const userCache = JSON.parse(cached);
+
+            // 检查缓存是否过期（7天）
+            const cacheTime = new Date(userCache.lastUpdated);
+            const now = new Date();
+            const diffTime = Math.abs(now - cacheTime);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 7 || userCache.cacheVersion !== this.cacheVersion) {
+                localStorage.removeItem(`userCache_${email}`);
+                return null;
+            }
+
+            return userCache;
+        } catch (error) {
+            console.error('读取用户缓存失败:', error);
+            return null;
+        }
+    }
+
+    getCache(key) {
+        try {
+            return JSON.parse(localStorage.getItem(key));
+        } catch {
+            return null;
+        }
+    }
+
+    setCache(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+        } catch (error) {
+            console.warn('缓存设置失败:', error);
+        }
+    }
+
+    isCacheValid(cachedData) {
+        if (!cachedData || cachedData.version !== this.cacheVersion) {
+            return false;
+        }
+
+        const cacheTime = new Date(cachedData.timestamp);
+        const now = new Date();
+        const diffHours = (now - cacheTime) / (1000 * 60 * 60);
+
+        return diffHours < 24; // 24小时有效期
+    }
+
+    // 清理过期缓存（替换原有的 cleanupUserCache 函数）
+    cleanupExpiredCache() {
+        const keys = Object.keys(localStorage);
+        const now = new Date();
+
+        keys.forEach(key => {
+            if (key.startsWith('essential_data_') || key.startsWith('userCache_')) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data && data.timestamp) {
+                        const cacheTime = new Date(data.timestamp);
+                        const diffHours = (now - cacheTime) / (1000 * 60 * 60);
+                        if (diffHours > 24 * 7) { // 7天以上
+                            localStorage.removeItem(key);
+                        }
+                    }
+                } catch {
+                    // 无效数据，直接删除
+                    localStorage.removeItem(key);
+                }
+            }
+        });
+    }
+
+    // 后台更新用户数据
+    async updateUserDataInBackground(email) {
+        try {
+            const users = await gitHubDataManager.getAllUsers();
+            const latestUser = users.find(u => u.email === email);
+
+            if (latestUser) {
+                // 更新缓存
+                const cached = this.getCachedUser(email);
+                if (cached) {
+                    this.cacheUserData(latestUser, cached.password);
+                }
+            }
+        } catch (error) {
+            console.log('后台更新用户数据失败:', error);
+        }
+    }
+}
+
+// 初始化缓存管理器
+const cacheManager = new CacheManager();
+
 // 初始化粒子系统
 let particleSystem;
 
@@ -116,6 +300,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 添加鼠标移动放大效果
     initHoverEffects();
+
+    // 清理过期缓存
+    cacheManager.cleanupExpiredCache();
 });
 
 // 初始化认证系统
@@ -159,6 +346,7 @@ function initAuthSystem() {
         const password = document.getElementById('password').value;
         const submitBtn = document.getElementById('submitBtn');
         const btnText = submitBtn.querySelector('.btn-text');
+        const loadingState = document.getElementById('loadingState');
 
         // 基本验证
         if (!email || !password) {
@@ -179,6 +367,7 @@ function initAuthSystem() {
         // 显示加载状态
         btnText.textContent = isLoginMode ? '登录中...' : '注册中...';
         submitBtn.disabled = true;
+        loadingState.classList.add('show');
 
         try {
             await handleAuthRequest(email, password);
@@ -189,16 +378,28 @@ function initAuthSystem() {
             // 恢复按钮状态
             btnText.textContent = isLoginMode ? '登录' : '注册';
             submitBtn.disabled = false;
+            loadingState.classList.remove('show');
         }
     });
 }
 
-// 处理认证请求 - 修改为使用GitHub API
 async function handleAuthRequest(email, password) {
     if (isLoginMode) {
-        // 使用GitHub API登录
         try {
+            // 检查是否有缓存的用户数据
+            const cachedUser = cacheManager.getCachedUser(email);
+            if (cachedUser && cachedUser.password === password) {
+                // 使用缓存数据快速登录
+                console.log('✅ 使用缓存用户数据快速登录');
+                await handleQuickLogin(cachedUser, email);
+                return;
+            }
+
+            // 正常GitHub API登录流程
             const user = await gitHubDataManager.verifyUser(email, password);
+
+            // 缓存用户数据
+            cacheManager.cacheUserData(user, password);
 
             // 记录登录历史
             const loginInfo = {
@@ -215,6 +416,7 @@ async function handleAuthRequest(email, password) {
             // 保存用户登录状态到本地存储
             localStorage.setItem('currentUser', email);
             localStorage.setItem('userId', user.id);
+            localStorage.setItem('lastLogin', new Date().toISOString());
 
             // 跳转到首页
             setTimeout(() => {
@@ -251,6 +453,30 @@ async function handleAuthRequest(email, password) {
             throw new Error(error.message);
         }
     }
+}
+
+// 快速登录处理
+async function handleQuickLogin(cachedUser, email) {
+    showMessage('快速登录成功！', 'success');
+    createButtonEffect('success');
+
+    // 异步预加载必要数据
+    cacheManager.preloadEssentialData(email).then(essentialData => {
+        console.log('✅ 必要数据预加载完成', essentialData);
+    }).catch(error => {
+        console.log('预加载数据失败，但不影响主要功能:', error);
+    });
+
+    // 异步更新用户数据
+    cacheManager.updateUserDataInBackground(email);
+
+    localStorage.setItem('currentUser', email);
+    localStorage.setItem('userId', cachedUser.id);
+    localStorage.setItem('lastLogin', new Date().toISOString());
+
+    setTimeout(() => {
+        window.location.href = 'home.html';
+    }, 1000);
 }
 
 // 获取IP地址
