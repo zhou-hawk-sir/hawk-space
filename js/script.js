@@ -650,6 +650,12 @@ function initGitHubStatus() {
     document.body.appendChild(statusIndicator);
 
     // 测试GitHub连接
+    if (typeof gitHubDataManager === 'undefined') {
+        console.warn('⚠️ gitHubDataManager 未就绪，延迟初始化...');
+        setTimeout(initGitHubStatus, 500);
+        return;
+    }
+    
     gitHubDataManager.testConnection().then(success => {
         statusIndicator.textContent = success ? '🟢 GitHub已连接' : '🔴 GitHub连接失败';
         statusIndicator.style.background = success ? 'rgba(46, 204, 113, 0.8)' : 'rgba(231, 76, 60, 0.8)';
@@ -663,4 +669,5 @@ function initGitHubStatus() {
 // 初始化GitHub状态
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initGitHubStatus, 2000);
+
 });
