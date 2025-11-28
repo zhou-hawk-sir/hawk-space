@@ -416,6 +416,16 @@ input:checked + .slider:before {
     background: rgba(16, 18, 27, 0.9);
 }
 
+.room-banner {
+    margin: 10px 30px 0 30px;
+    padding: 10px 14px;
+    background: rgba(46, 204, 113, 0.15);
+    border: 1px solid rgba(46, 204, 113, 0.4);
+    color: #2ecc71;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
 .room-info h2 {
     color: white;
     font-size: 20px;

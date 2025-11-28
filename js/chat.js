@@ -263,8 +263,8 @@ class ChatManager {
         // 加载消息
         await this.loadMessages();
 
-        // 发送加入通知
-        await this.sendSystemMessage(`${this.getShortEmail(this.currentUser)} 加入了聊天室`);
+        // 顶部短暂加入提示（不写入聊天记录）
+        this.showTopBanner(`${this.getShortEmail(this.currentUser)} 加入了聊天室`);
 
         console.log(`✅ 加入聊天室: ${roomId}`);
     }
@@ -315,6 +315,9 @@ class ChatManager {
         messagesContainer.innerHTML = '';
 
         this.messages.forEach(message => {
+            if (message.type === 'system' && typeof message.content === 'string' && message.content.includes('加入了聊天室')) {
+                return; // 不渲染加入提示到消息列表
+            }
             const messageElement = this.createMessageElement(message);
             messagesContainer.appendChild(messageElement);
         });
@@ -420,11 +423,19 @@ class ChatManager {
     async checkNewMessages() {
         try {
             const newMessages = await gitHubDataManager.getChatMessages(this.currentRoom);
+            // 处理系统加入提示：显示横幅，不进入消息列表
+            const joinMessages = newMessages.filter(m => m.type === 'system' && typeof m.content === 'string' && m.content.includes('加入了聊天室'));
+            if (joinMessages.length) {
+                const lastJoin = joinMessages[joinMessages.length - 1];
+                this.showTopBanner(lastJoin.content);
+            }
 
-            if (newMessages.length > this.messages.length) {
+            const filteredNew = newMessages.filter(m => !(m.type === 'system' && typeof m.content === 'string' && m.content.includes('加入了聊天室')));
+
+            if (filteredNew.length > this.messages.length) {
                 // 有新消息
-                const newMessageCount = newMessages.length - this.messages.length;
-                this.messages = newMessages;
+                const newMessageCount = filteredNew.length - this.messages.length;
+                this.messages = filteredNew;
 
                 // 如果用户已经在底部，自动滚动到最新消息
                 const messagesContainer = document.getElementById('messagesContainer');
@@ -438,7 +449,7 @@ class ChatManager {
                     this.showNewMessageIndicator(newMessageCount);
                 }
 
-                this.lastMessageId = newMessages[newMessages.length - 1].id;
+                this.lastMessageId = filteredNew[filteredNew.length - 1].id;
             }
         } catch (error) {
             console.error('检查新消息失败:', error);
@@ -456,6 +467,19 @@ class ChatManager {
         if (messagesContainer) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+    }
+
+    // 顶部横幅提示，3秒后消失（仅显示一个）
+    showTopBanner(text) {
+        const banner = document.getElementById('roomBanner');
+        if (!banner) return;
+        banner.textContent = text;
+        banner.style.display = 'block';
+
+        clearTimeout(this._bannerTimer);
+        this._bannerTimer = setTimeout(() => {
+            banner.style.display = 'none';
+        }, 3000);
     }
 
     // 显示新消息指示器

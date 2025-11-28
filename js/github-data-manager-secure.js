@@ -339,6 +339,7 @@ async getLocationInfo() {
             'sessions/registration-history.json': { registrations: [] },
             'sessions/online-users.json': { users: [] },  // 新增这一行
             'products/products.json': { products: [] },   // 新增这一行
+            'products/latest.json': { products: [] },
             'chat/rooms/main.json': { messages: [] },  // 新增
             'chat/rooms.json': { rooms: [  // 新增
                 { id: 'main', name: '主聊天室', description: '欢迎来到主聊天室！', userCount: 0 }
@@ -739,9 +740,32 @@ const gitHubDataManager = new GitHubDataManager();
 // 商品数据管理方法
 GitHubDataManager.prototype.getProducts = async function() {
     try {
+        // 优先读取较小的最新数据文件，避免过大文件影响预览和加载
+        try {
+            const latestFile = await this.getFileContent('products/latest.json');
+            const latestContent = this.safeAtob(latestFile.content);
+            if (latestContent && Array.isArray(latestContent.products)) {
+                return latestContent.products;
+            }
+        } catch (e) {
+            // latest.json 不存在则回退到 products.json 并生成 latest.json
+        }
+
         const productsFile = await this.getFileContent('products/products.json');
         const productsContent = this.safeAtob(productsFile.content);
-        return productsContent.products || [];
+        const allProducts = productsContent.products || [];
+
+        // 生成 latest.json，仅保留最近200条
+        const latest = { products: allProducts.slice(0, 200) };
+        try {
+            const latestFile = await this.getFileContent('products/latest.json');
+            await this.updateFile('products/latest.json', latest, latestFile.sha);
+        } catch (e) {
+            // 如果文件不存在，创建它
+            await this.updateFile('products/latest.json', latest, undefined);
+        }
+
+        return latest.products;
     } catch (error) {
         console.error('获取商品数据失败:', error);
         return [];
@@ -773,6 +797,20 @@ GitHubDataManager.prototype.addProduct = async function(productData) {
 
         productsContent.products.unshift(newProduct);
         await this.updateFile('products/products.json', productsContent, productsFile.sha);
+
+        // 同步更新最新列表，限制为200条
+        let latestFile, latestContent;
+        try {
+            latestFile = await this.getFileContent('products/latest.json');
+            latestContent = this.safeAtob(latestFile.content) || { products: [] };
+        } catch (e) {
+            latestContent = { products: [] };
+        }
+
+        latestContent.products.unshift(newProduct);
+        latestContent.products = latestContent.products.slice(0, 200);
+
+        await this.updateFile('products/latest.json', latestContent, latestFile ? latestFile.sha : undefined);
 
         return newProduct;
     } catch (error) {
