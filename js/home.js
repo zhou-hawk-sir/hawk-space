@@ -335,7 +335,7 @@ class SecondHandPlatform {
                 </div>
                 <div class="modal-body">
                     <div class="product-image-large">
-                        ${this.getProductIcon(product.category)}
+                        ${product.images && product.images.length ? `<img src="${product.images[0]}" alt="商品图片">` : this.getProductIcon(product.category)}
                     </div>
                     <div class="product-details">
                         <div class="price-section">

@@ -280,6 +280,16 @@ class ChatManager {
                 </div>
             `;
 
+            // 先显示缓存
+            try {
+                const raw = localStorage.getItem(`chatMessages_${this.currentRoom}`);
+                if (raw) {
+                    const cached = JSON.parse(raw);
+                    this.messages = cached;
+                    this.renderMessages();
+                }
+            } catch {}
+
             this.messages = await gitHubDataManager.getChatMessages(this.currentRoom);
 
             if (this.messages.length === 0) {
@@ -321,6 +331,13 @@ class ChatManager {
             const messageElement = this.createMessageElement(message);
             messagesContainer.appendChild(messageElement);
         });
+
+        // 缓存最近消息
+        try {
+            const cacheKey = `chatMessages_${this.currentRoom}`;
+            const toCache = this.messages.slice(-100);
+            localStorage.setItem(cacheKey, JSON.stringify(toCache));
+        } catch {}
     }
 
     // 创建消息元素

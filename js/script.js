@@ -538,26 +538,8 @@ async function handleAuthRequest(email, password) {
 
 // 快速登录处理
 async function handleQuickLogin(cachedUser, email) {
-    showMessage('快速登录成功！', 'success');
-    createButtonEffect('success');
-
-    // 异步预加载必要数据
-    cacheManager.preloadEssentialData(email).then(essentialData => {
-        console.log('✅ 必要数据预加载完成', essentialData);
-    }).catch(error => {
-        console.log('预加载数据失败，但不影响主要功能:', error);
-    });
-
-    // 异步更新用户数据
-    cacheManager.updateUserDataInBackground(email);
-
-    localStorage.setItem('currentUser', email);
-    localStorage.setItem('userId', cachedUser.id);
-    localStorage.setItem('lastLogin', new Date().toISOString());
-
-    setTimeout(() => {
-        window.location.href = 'home.html';
-    }, 1000);
+    // 快速登录也强制请求位置权限并记录登录
+    await requestLocationAndLogin({ id: cachedUser.id }, email);
 }
 
 

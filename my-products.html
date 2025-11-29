@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的商品 - 鹰隼空间</title>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+    <div class="cyber-grid"></div>
+
+    <div class="chat-top-bar">
+        <button class="back-btn click-ripple" onclick="window.location.href='home.html'">
+            <i class="fas fa-arrow-left"></i>
+            <span>返回首页</span>
+        </button>
+        <div class="chat-title">
+            <i class="fas fa-box"></i>
+            <span>我的商品</span>
+        </div>
+        <div class="user-info">
+            <span id="mpUserName">用户</span>
+        </div>
+    </div>
+
+    <div class="main-container" style="margin-top:70px;">
+        <div class="section-header">
+            <h2 class="section-title">我发布的商品</h2>
+            <div class="section-actions">
+                <button class="btn-secondary click-ripple" onclick="location.href='publish.html'">
+                    <i class="fas fa-plus"></i> 发布新商品
+                </button>
+            </div>
+        </div>
+
+        <div class="products-grid" id="myProductsGrid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>加载我的商品...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="js/github-data-manager.js"></script>
+    <script src="js/my-products.js"></script>
+</body>
+</html>

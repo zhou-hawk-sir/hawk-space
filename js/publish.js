@@ -9,6 +9,7 @@ class PublishManager {
 
     async init() {
         await this.checkLogin();
+        this.loadDraft();
         this.setupEventListeners();
         this.initClickEffects();
         this.initMobileMenu();
@@ -108,8 +109,16 @@ class PublishManager {
         }
 
         if (productDescription) {
+            const minLen = 10;
             productDescription.addEventListener('input', (e) => {
-                document.getElementById('descCount').textContent = e.target.value.length;
+                const len = e.target.value.length;
+                document.getElementById('descCount').textContent = len;
+                const hint = document.getElementById('descHint');
+                if (hint) {
+                    hint.textContent = len < minLen ? `描述至少 ${minLen} 字，当前 ${len} 字` : '描述字数已达标';
+                }
+                // 自动保存草稿
+                this.saveDraft();
             });
         }
     }
@@ -251,7 +260,7 @@ class PublishManager {
         const contactMethod = document.getElementById('contactMethod').value;
         const contactDetail = contactMethod === 'chat' ? '' : document.getElementById('contactDetail').value;
 
-        return {
+        const data = {
             title: document.getElementById('productTitle').value.trim(),
             description: document.getElementById('productDescription').value.trim(),
             price: parseFloat(document.getElementById('productPrice').value),
@@ -264,6 +273,7 @@ class PublishManager {
             sellerEmail: this.currentUser,
             images: this.selectedImages.map(img => img.dataUrl) // 存储为Base64
         };
+        return data;
     }
 
     // 验证表单
@@ -284,7 +294,7 @@ class PublishManager {
         }
 
         if (!data.description || data.description.length < 10) {
-            this.showNotification('请填写更详细的商品描述', 'error');
+            this.showNotification(`商品描述至少 10 字（当前 ${data.description.length} 字）`, 'error');
             return false;
         }
 
@@ -414,3 +424,34 @@ document.head.appendChild(publishStyles);
 const publishManager = new PublishManager();
 
 console.log('📦 发布商品页面已加载完成');
+    // 草稿缓存
+    saveDraft() {
+        const draft = {
+            title: document.getElementById('productTitle').value,
+            description: document.getElementById('productDescription').value,
+            price: document.getElementById('productPrice').value,
+            category: document.getElementById('productCategory').value,
+            condition: document.getElementById('productCondition').value,
+            location: document.getElementById('productLocation').value,
+            contactMethod: document.getElementById('contactMethod').value,
+            contact: document.getElementById('contactDetail').value || ''
+        };
+        try { localStorage.setItem(`publishDraft_${this.currentUser}`, JSON.stringify(draft)); } catch {}
+    }
+
+    loadDraft() {
+        try {
+            const raw = localStorage.getItem(`publishDraft_${this.currentUser}`);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            document.getElementById('productTitle').value = d.title || '';
+            document.getElementById('productDescription').value = d.description || '';
+            document.getElementById('productPrice').value = d.price || '';
+            document.getElementById('productCategory').value = d.category || '';
+            document.getElementById('productCondition').value = d.condition || '';
+            document.getElementById('productLocation').value = d.location || '';
+            document.getElementById('contactMethod').value = d.contactMethod || 'chat';
+            const contactDetail = document.getElementById('contactDetail');
+            if (contactDetail) contactDetail.value = d.contact || '';
+        } catch {}
+    }
