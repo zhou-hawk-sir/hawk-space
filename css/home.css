@@ -469,17 +469,27 @@ body {
     padding: 10px 15px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: #2a2f45;
+    color: #eaeefb;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
     min-width: 120px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .filter-select:focus {
     outline: none;
     border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* 尝试覆盖下拉选项的可读性（部分浏览器生效） */
+.filter-select option {
+    color: #111;
+    background: #fff;
 }
 
 /* 商品区域 */

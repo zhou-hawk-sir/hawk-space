@@ -147,6 +147,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     background: rgba(255, 255, 255, 0.05);
+    position: relative;
 }
 
 .image-upload-area:hover {
@@ -176,6 +177,19 @@
     color: rgba(255, 255, 255, 0.5);
     font-size: 12px;
 }
+
+/* 让点击区域在移动端触发系统文件选择器 */
+.file-input-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-placeholder { pointer-events: none; }
 
 /* 图片预览 */
 .image-preview {
