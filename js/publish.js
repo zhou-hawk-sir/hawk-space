@@ -424,34 +424,3 @@ document.head.appendChild(publishStyles);
 const publishManager = new PublishManager();
 
 console.log('📦 发布商品页面已加载完成');
-    // 草稿缓存
-    saveDraft() {
-        const draft = {
-            title: document.getElementById('productTitle').value,
-            description: document.getElementById('productDescription').value,
-            price: document.getElementById('productPrice').value,
-            category: document.getElementById('productCategory').value,
-            condition: document.getElementById('productCondition').value,
-            location: document.getElementById('productLocation').value,
-            contactMethod: document.getElementById('contactMethod').value,
-            contact: document.getElementById('contactDetail').value || ''
-        };
-        try { localStorage.setItem(`publishDraft_${this.currentUser}`, JSON.stringify(draft)); } catch {}
-    }
-
-    loadDraft() {
-        try {
-            const raw = localStorage.getItem(`publishDraft_${this.currentUser}`);
-            if (!raw) return;
-            const d = JSON.parse(raw);
-            document.getElementById('productTitle').value = d.title || '';
-            document.getElementById('productDescription').value = d.description || '';
-            document.getElementById('productPrice').value = d.price || '';
-            document.getElementById('productCategory').value = d.category || '';
-            document.getElementById('productCondition').value = d.condition || '';
-            document.getElementById('productLocation').value = d.location || '';
-            document.getElementById('contactMethod').value = d.contactMethod || 'chat';
-            const contactDetail = document.getElementById('contactDetail');
-            if (contactDetail) contactDetail.value = d.contact || '';
-        } catch {}
-    }
