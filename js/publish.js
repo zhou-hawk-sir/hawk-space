@@ -306,6 +306,39 @@ class PublishManager {
         return true;
     }
 
+    // 草稿缓存
+    saveDraft() {
+        const draft = {
+            title: document.getElementById('productTitle').value,
+            description: document.getElementById('productDescription').value,
+            price: document.getElementById('productPrice').value,
+            category: document.getElementById('productCategory').value,
+            condition: document.getElementById('productCondition').value,
+            location: document.getElementById('productLocation').value,
+            contactMethod: document.getElementById('contactMethod').value,
+            contact: (document.getElementById('contactDetail') && document.getElementById('contactDetail').value) || ''
+        };
+        try { localStorage.setItem(`publishDraft_${this.currentUser}`, JSON.stringify(draft)); } catch {}
+    }
+
+    loadDraft() {
+        try {
+            const raw = localStorage.getItem(`publishDraft_${this.currentUser}`);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+            setVal('productTitle', d.title);
+            setVal('productDescription', d.description);
+            setVal('productPrice', d.price);
+            setVal('productCategory', d.category);
+            setVal('productCondition', d.condition);
+            setVal('productLocation', d.location);
+            setVal('contactMethod', d.contactMethod || 'chat');
+            const contactDetail = document.getElementById('contactDetail');
+            if (contactDetail) contactDetail.value = d.contact || '';
+        } catch {}
+    }
+
     // 初始化点击特效
     initClickEffects() {
         document.addEventListener('click', function(e) {
